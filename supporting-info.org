@@ -61,7 +61,7 @@
 \maketitle
 \raggedbottom
 
-In this document we provide additional information about the computational and experimental methods used, along with supplementary results. To accompany this document, an external Zenodo repository hosts code and raw data.  The microkinetic model is included as a python module (/mkm.py/). Other utility functions are included in /plasmautils.py/. Calculated turnover frequencies are included as /json/ files. Raw data for the plasma characterization and kinetic measurements are included as Excel spreadsheets (/Raw_data_OES.xlsx/ and /kinetic-expts.xlsx/). Python scripts showing how these data files were used to create the figures in the main text are shown in cref:sec:reproduction. These scripts were executed in place inside an Emacs /org-mode/ document, which was subsequently exported to create this pdf. The org-mode source file, /supporting-info.org/, is also available in the data repository.
+In this document we provide additional information about the computational and experimental methods used, along with supplementary results. To accompany this document, an external Zenodo repository hosts code and raw data cite:prateek_mehta_2017_1072163.  The microkinetic model is included as a python module (/mkm.py/). Other utility functions are included in /plasmautils.py/. Calculated turnover frequencies are included as /json/ files. Raw data for the plasma characterization and kinetic measurements are included as Excel spreadsheets (/Raw_data_OES.xlsx/ and /kinetic-expts.xlsx/). Python scripts showing how these data files were used to create the figures in the main text are shown in cref:sec:reproduction. These scripts were executed in place inside an Emacs /org-mode/ (http://orgmode.org) document, which was subsequently exported to create this pdf. The org-mode source file, /supporting-info.org/, is also available in the data repository.
 
 * Scaling relations label:sec:scaling
    
@@ -858,7 +858,7 @@ plt.show()
 :RESULTS:
 :END:
 
-
+bibliographystyle:naturemag
 bibliography:./shorttitles.bib,./references.bib
 
 
