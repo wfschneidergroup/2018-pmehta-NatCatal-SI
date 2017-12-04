@@ -1,0 +1,866 @@
+#+TITLE: 
+#+EXPORT_EXCLUDE_TAGS: noexport
+#+OPTIONS: author:nil date:nil toc:nil tex:dvipng
+#+LATEX_CLASS: revtex4-1
+#+LATEX_CLASS_OPTIONS:[aps,citeautoscript,preprint,citeautoscript,showkeys,floatfix,superscriptaddress,longbibliography]
+#+latex_header: \SectionNumbersOn
+#+latex_header: \usepackage[utf8]{inputenc}
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage[version=4]{mhchem}
+#+latex_header: \usepackage{chemmacros}[2016/05/02]
+#+latex_header: \usepackage{graphicx}
+#+latex_header: \usepackage{float}
+#+latex_header: \usepackage{color}
+#+latex_header: \usepackage{amsmath}
+#+latex_header: \usepackage{textcomp}
+#+latex_header: \usepackage{wasysym}
+#+latex_header: \usepackage{latexsym}
+#+latex_header: \usepackage{amssymb}
+#+latex_header: \usepackage{minted}
+#+latex_header: \usepackage[linktocpage, pdfstartview=FitH, colorlinks, linkcolor=black, anchorcolor=black, citecolor=black, filecolor=black, menucolor=black, urlcolor=black]{hyperref}
+#+latex_header: \newcommand{\red}[1]{\textcolor{red}{#1}}
+#+latex_header: \chemsetup{formula = mhchem ,modules = {reactions,thermodynamics}}
+#+latex_header: \usepackage[noabbrev]{cleveref}
+
+#+latex_header:	\renewcommand{\thetable}{S\arabic{table}}
+#+latex_header:  \renewcommand{\thefigure}{S\arabic{figure}}
+#+latex_header:\renewcommand{\thesection}{S\arabic{section}}
+
+\title{Supporting Information: Overcoming Ammonia Synthesis Scaling Relations with Plasma-enabled Catalysis}
+
+\author{Prateek Mehta}
+\affiliation{Department of Chemical and Biomolecular Engineering, University of Notre Dame, Notre Dame, Indiana 46556, United States}
+
+\author{Patrick Barboun}
+\affiliation{Department of Chemical and Biomolecular Engineering, University of Notre Dame, Notre Dame, Indiana 46556, United States}
+
+\author{Francisco A. Herrera}
+\affiliation{Department of Aerospace and Mechanical Engineering, University of Notre Dame, Notre Dame, Indiana 46556, United States}
+
+\author{Jongsik Kim}
+\affiliation{Department of Chemical and Biomolecular Engineering, University of Notre Dame, Notre Dame, Indiana 46556, United States}
+
+\author{Paul Rumbach}
+\affiliation{Department of Aerospace and Mechanical Engineering, University of Notre Dame, Notre Dame, Indiana 46556, United States}
+
+\author{David B. Go}
+\email{dgo@nd.edu}
+\affiliation{Department of Chemical and Biomolecular Engineering, University of Notre Dame, Notre Dame, Indiana 46556, United States}
+\affiliation{Department of Aerospace and Mechanical Engineering, University of Notre Dame, Notre Dame, Indiana 46556, United States}
+
+\author{Jason C. Hicks}
+\email{jhicks3@nd.edu}
+\affiliation{Department of Chemical and Biomolecular Engineering, University of Notre Dame, Notre Dame, Indiana 46556, United States}
+
+\author{William F. Schneider}
+\email{wschneider@nd.edu}
+\affiliation{Department of Chemical and Biomolecular Engineering, University of Notre Dame, Notre Dame, Indiana 46556, United States}
+
+\date{\today}
+\pacs{}
+\maketitle
+\raggedbottom
+
+In this document we provide additional information about the computational and experimental methods used, along with supplementary results. To accompany this document, an external Zenodo repository hosts code and raw data.  The microkinetic model is included as a python module (/mkm.py/). Other utility functions are included in /plasmautils.py/. Calculated turnover frequencies are included as /json/ files. Raw data for the plasma characterization and kinetic measurements are included as Excel spreadsheets (/Raw_data_OES.xlsx/ and /kinetic-expts.xlsx/). Python scripts showing how these data files were used to create the figures in the main text are shown in cref:sec:reproduction. These scripts were executed in place inside an Emacs /org-mode/ document, which was subsequently exported to create this pdf. The org-mode source file, /supporting-info.org/, is also available in the data repository.
+
+* Scaling relations label:sec:scaling
+   
+Cref:fig:steps1,fig:steps2 show the scaling reactions used to calculate the reaction and activation energies of the elementary steps on stepped surfaces. Relevant adsorption energies and activation energies were obtained from Refs.\nbsp{}cite:vojvodic-2014-explor-limit,wang-2011-univer-trans. Cref:fig:terrace1,fig:terrace2 show the scaling reactions used to calculate the reaction and activation energies of the elementary steps on terrace sites. Relevant energies were obtained from Refs.\nbsp{}cite:wang-2011-univer-trans,falsig-2013-struc-sensit. We note that for terrace sites, we used a constant value of -0.32 eV is used for the H binding energy (the value for Pt(111) cite:wang-2011-univer-trans). This choice ensures that the overall reaction energy is identical for steps and terraces, and is justified because the hydrogen adsorption energy varies very little for the metals studied here. A similar assumption was made in a previous study cite:vojvodic-2014-explor-limit.
+
+#+ATTR_LATEX: :placement [H] :width 5in
+#+caption: Correlations between reaction energies of different elementary steps and the nitrogen adsorption energy on step sites label:fig:steps1
+[[file:figures/steps-rxn-scaling.png]]
+
+
+#+ATTR_LATEX: :placement [H] :width 5in
+#+caption: BEP relationships between reaction and activation energies of different elementary steps on step sites label:fig:steps2
+[[file:figures/steps-BEP-scaling.png]]
+
+#+ATTR_LATEX: :placement [H] :width \textwidth
+#+caption: Correlations between reaction energies of different elementary steps and the nitrogen adsorption energy on terrace sites label:fig:terrace1
+[[file:figures/terraces-rxn-scaling.png]]
+
+
+#+ATTR_LATEX: :placement [H] :width 5in
+#+caption: BEP relationships between reaction and activation energies of different elementary steps on terrace sites label:fig:terrace2
+[[file:figures/terraces-BEP-scaling.png]]
+
+
+* Microkinetic Model label:sec:mkm
+
+Our microkinetic model is available as a python module (/mkm.py/). An example of how to use the file to compute coverages and rates is shown below.
+
+#+BEGIN_SRC python :results output org drawer
+from mkm import NH3mkm
+# For changing no of significant digits printed
+from mpmath import nstr 
+
+mod = NH3mkm(473.0,    # temperature
+             -0.16,     # EN
+             p0=1.,     # total pressure
+             N2_frac=0.25,
+             X=0.01,   # conversion
+             model='explicit', # Treat vibrational levels independently
+             nlevels=11,       # First 10 excited states + ground state
+             Tv=3000.,         # Vibrational temperature
+             dist='Treanor',
+             use_alpha=True,
+             site='step')
+
+# First compute the coverages of N, H, NH, NH2
+# Pre-converge by ode integration
+theta0 = mod.integrate_odes()
+# Refine by root finding
+theta = mod.find_steady_state_roots(theta0=theta0)
+tN, tH, tNH, tNH2 = theta
+
+for s, t in zip(['\\theta_{N}',
+                 '\\theta_{H}',
+                 '\\theta_{NH}',
+                 '\\theta_{NH2}', 
+                 '\\theta_{*}'],
+                [tN, tH, tNH, tNH2, 1 - sum(theta)]):
+    print '{0} = {1}\n'.format(s, nstr(t, 3))
+
+rate = mod.get_rates(theta)
+print 'TOF = {0:1.2e} s^{{-1}}'.format(rate[0])
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+\theta_{N} = 0.0328
+
+\theta_{H} = 0.672
+
+\theta_{NH} = 0.232
+
+\theta_{NH2} = 0.00526
+
+\theta_{*} = 0.0575
+
+TOF = 1.36e-04 s^{-1}
+:END:
+
+
+* Plasma Characterization
+
+This section contains figures referenced in section IIIB of the main text.
+
+#+ATTR_LATEX: :placement [H] :width 5in
+#+caption: Experimental set-up consisting of an L-shaped quartz tube DBD plasma reactor with 5 mm inner diameter tube and an optical fiber coupled to a spectrometer. The bottom part of the L-bend has a quartz window for easy optical access to the catalyst bed.
+[[file:figures/plasma-char-setup.png]]
+
+#+ATTR_LATEX: :placement [H] :width 5in
+#+caption: (a) Emission spectra of a 10 W DBD plasma with no catalyst for different \ce{N2}/\ce{H2} ratios at a total flow rate of 20 sccm. (b) Example of fitting experimental spectrum using Specair\texttrademark\nbsp{}in the wavelength range of 300-385 nm (\ce{N2}/\ce{H2} = 5, 10 W DBD plasma with no catalyst)
+[[file:figures/plasma-char-spectra.png]]
+
+#+ATTR_LATEX: :placement [H] :width 3in
+#+caption: Vibrational temperature (T_{vib}) as a function of the gas composition \ce{N2}/\ce{H2} for three experimental conditions: a 10 W DBD plasma with no catalyst material (open circle), a 10 W DBD plasma with 100 mg \ce{Al2O3} support, and a 10 W DBD plasma with 100 mg \ce{Al2O3} support and 5% Ni catalyst.
+[[file:figures/plasma-char-Tv.png]]
+
+
+* Catalyst Characterization
+
+\ce{N2} physisorption experiments were performed on all five catalysts at 77 K using a Quantachrome Nova 2200e physisorption system. These data are shown in Cref:tab:cat-char. All materials were found to have surface areas in the range of 100-150 m^{2}/g. The number of available metal sites were titrated through CO pulse chemisorption (Micromeritics Chemisorb 2750). Before measurement catalysts were pre-treated in 20 mL/min hydrogen at 773 K for 30 min to minimize any polycarbonyl formation during the CO pulse sequence. After 30 min the flow was changed to 20 mL/min helium for 30 min to remove any physisorbed species from the surface. The sample was then cooled to 308 K and small amounts of 30 % CO in He (Airgas) were pulsed into the system until the surface was saturated with CO. The amount of CO adsorbed was subsequently determined using an external calibration. CO uptake amounts are also reported in Cref:tab:cat-char.  X-ray diffraction was performed on each powdered catalyst using a D8 Advance Davinci (Bruker). Diffraction patterns obtained on each material are shown in Cref:fig:XRD.  A silicon standard was added to each sample to in order to correct for any shifts in peak location. Particle size distributions were determined for each material based on TEM images taken by a FEI Titan Microscope. All particle size distributions are based on more than 300 particles. Images and distributions can be seen in Cref:fig:tem-sizes. Average particle sizes are reported in Cref:tab:cat-char.
+
+#+ATTR_LATEX: :placement [H]  :font \scriptsize :align c|c|c|c|c
+#+caption:Metal loading, surface area, CO uptake, and average particle size of the catalysts investigated in this study. label:tab:cat-char
+|------------+---------------------+--------------------------+--------------------------+---------------------------|
+| *Catalyst* | *Metal loading (%)* | *Surface Area (m^{2}/g)* | *CO uptake (\mu{}mol/g)* | *Avg. Particle Size (nm)* |
+|------------+---------------------+--------------------------+--------------------------+---------------------------|
+| Fe         |                   5 |                    106.4 |                     26.6 |                       9.8 |
+| Ru         |                   5 |                    131.1 |                     11.7 |                      14.8 |
+| Co         |                   5 |                    140.6 |                      5.5 |                       7.3 |
+| Ni         |                   5 |                    133.5 |                     16.5 |                      15.0 |
+| Pt         |                   5 |                    152.7 |                     16.8 |                       2.5 |
+|------------+---------------------+--------------------------+--------------------------+---------------------------|
+
+#+ATTR_LATEX: :placement [H] :width 4in
+#+caption: X-ray diffraction patterns for: a) 5 % Fe/\ce{Al2O3}, b) 5 % Ru/\ce{Al2O3}, c) 5 % Co/\ce{Al2O3}, d) 5 % Ni/\ce{Al2O3}, and e) 5 % Pt/\ce{Al2O3}. The vertical dashed lines correspond to the silicon standard. \gamma-alumina appears on all samples and is marked with a white diamond. The other metals are marked as follows: Fe (brown circles), Ru (red squares), Co (blue triangles), Ni (green diamonds), and Pt (black triangles). label:fig:XRD
+[[./figures/xrd.png]]
+
+#+ATTR_LATEX: :placement [H] :width 4.2in
+#+caption: TEM images and particle size distributions for 5 % Fe/\ce{Al2O3}, 5 % Ru/\ce{Al2O3}, 5 % Co/\ce{Al2O3}, 5 % Ni/\ce{Al2O3}, and 5 % Pt/\ce{Al2O3} label:fig:tem-sizes
+[[./figures/tem-sizes.png]]
+
+
+* Feed Composition Optimization
+
+\ce{N2} rich feeds have been reported to produce higher ammonia yields than stoichiometric feeds in plasma-catalytic ammonia synthesis cite:mizushima-2006-catal-effec,kim-2016-atmos-press. To determine an optimal feed composition, we measured ammonia synthesis production rates with inlet \ce{N2}:\ce{H2} ratios ranging between 1:3 and 5:1 for two cases. In the first case, we used 100 mg of 5 % Ru/\ce{Al2O3} was used. In the second experiment, we used 100 mg of alumnia, to measure background ammonia production from the plasma and/or the support. The measured ammonia production rates are shown as a function of feed ratio in Cref:fig:feed. It is clear from the figure that \ce{N2}:\ce{H2} ratios between 1 and 3 result in the highest production rates. Accordingly, we used a \ce{N2}:\ce{H2} ratio of 2 for all rate determination experiments.
+
+#+ATTR_LATEX: :width 3in :placement [H]
+#+caption: Observed rate as a function of the inlet feed composition in a reactor packed with 100 mg of 5 % Ru/\ce{Al2O3} or 100 mg of \ce{Al2O3} blank. Reaction conditions: 438 K, 10 W, flow rate = 20 mL/min. label:fig:feed
+[[./figures/feed-composition.png]]
+
+
+* Initial rate determination
+
+We determined initial rates through careful examination of plots of the production rate of ammonia as a function of the residence time, defined as mass of material divided by the mass flow rate of reactants ($W/F$). All initial rate determinations were done at 438 K using a feed composition of \ce{N2}/\ce{H2} = 2 and a plasma power of 10 W. For these experiments, 100 mg of material was packed into the reactor, and the total flow rate of reactants was varied between 10 and 50 mL/min. Figure Cref:fig:WF shows the ammonia production rates normalized per gram of material as a function of $W/F$ (measured points are shown as filled circles). In all cases, production rates were lower at high $W/F$, and began to plateau in the limit of very low residence times, indicating that rates at these residence times were in the kinetically limited regime. A blank $W/F$ curve was also measured using a reactor packed with 100 mg of alumina to evaluate the background reactions. 
+
+Three different methods were used to extract initial rates from the collected data. In the first method, a line was fit through the data points in the reaction-limited regime. These fits were then extrapolated to $W/F$ = 0 to calculate the initial rates. In the second method, a quadratic equation was fit to the data and the peak of the parabola was used to calculate site-time yields. Finally, because a kinetically limited regime was observed on each catalyst, the rate measured at the lowest residence time was assumed to be equal to the initial rate to compute site-time yields. The initial rates computed by the three methods varied only marginally. The reported site time yields are based on initial rates (shown as open circles in Cref:fig:WF) linearly extrapolated to $W/F = 0$ (first method).
+
+#+ATTR_LATEX: :width 4in :placement [H]
+#+caption: Observed rates as a function of the residence time of reactants ($W/F$) in the DBD reactor. Initial rates (plotted as open circles) were extracted by extrapolating the observed rates to $W/F = 0$ using uncertainty weighted linear regression (shown by dotted lines). Reaction conditions: 438 K, 10 W, inlet \ce{N2}:\ce{H2} = 2:1. label:fig:WF
+[[./figures/WF.png]]
+
+
+
+* Reproducing figures in the paper label:sec:reproduction
+
+*** Figure 1: Thermal TOFs
+
+#+BEGIN_SRC python :results output org drawer
+import matplotlib.pyplot as plt
+import numpy as np
+from plasmautils import get_prefix, get_prefix_explicit, load_variables
+plt.style.use('seaborn-poster')
+
+plt.figure(figsize=(5.5,6), dpi=200)
+
+# Steps 673 K, 100 atm
+T = 673.
+p = 100.
+site = 'step'
+Ev = 0.
+
+prefix = get_prefix(site, T, p, Ev)
+filename = 'rate-calcs/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+line, = plt.plot(E, np.log10(R), '-', c='C0', label='step: 673 K, 100 atm')
+
+# metals
+filename = 'rate-calcs-metals/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+metals = d['metals']
+plt.plot(E, np.log10(R), 'o', mew=2, mfc='w', mec=line.get_color())
+
+for m, e, r in zip(metals, E, R):
+    plt.text(e - 0.05, np.log10(r) + 0.6, m, color='C0', fontsize=13)
+
+
+# Steps 473 K, 1 atm
+T = 473.
+p = 1.
+site = 'step'
+Tv = 3000. # unused for 1 level
+
+prefix = get_prefix_explicit(site, T, p, Tv, 'Treanor',
+                             1, True)
+
+filename = 'rate-calcs/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+line, = plt.plot(E, np.log10(R), c='C1', label='step: 473 K, 1 atm')
+
+# metals
+filename = 'rate-calcs-metals/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+metals = d['metals'][0:-2]
+plt.plot(E, np.log10(R), 'o', mew=2, mfc='w', mec=line.get_color())
+
+for m, e, r in zip(metals, E, R):
+    if m == 'Fe':
+        xoffset = -0.1
+    else:
+        xoffset = 0.
+    yoffset = 0.6
+
+    plt.text(e + xoffset, np.log10(r) + yoffset, m, color='C1', fontsize=13)
+
+
+# Terraces 473 K, 1 atm
+site = 'terrace'
+
+prefix =  get_prefix_explicit(site, T, p, Tv, 'Treanor',
+                             1, True)
+
+filename = 'rate-calcs/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+line, = plt.plot(E, np.log10(R), c='C2', label='terrace: 473 K, 1 atm')
+
+# metals
+filename = 'rate-calcs-metals/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+metals = d['metals'][0:4]
+
+plt.plot(E, np.log10(R), 'o', mfc='w', mew=2, mec=line.get_color())
+
+for m, e, r in zip(metals, E, R):
+    yoffset = 0.6
+    xoffset = 0.
+    plt.text(e + xoffset, np.log10(r) + yoffset, m, color='C2', fontsize=13)
+
+plt.text(-0.6, -1.5, 'steps: 673 K, 100 atm', color='C0', fontsize=13)
+plt.text(-1.3, -8, 'steps: 473 K,\n1 atm', color='C1', fontsize=13)
+plt.text(-1.3, -18, 'terraces:\n473 K, 1 atm', color='C2', fontsize=13)
+
+plt.xlim(-1.4, 1.)
+plt.ylim(-22, 0)
+plt.yticks(np.arange(-20, 1, 5))
+plt.xticks(np.arange(-1.2, 1, 0.6))
+plt.xlabel('$E_{\mathrm{N}}$ [eV]')
+plt.ylabel('log$_{10}$(TOF [s$^{-1}$])')
+
+plt.tight_layout()
+
+for ext in ['pdf', 'eps', 'png']:
+   plt.savefig('../figures/fig1-HB-v-target.{0}'.format(ext), dpi=300)
+plt.show()
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+:END:
+
+
+*** Figure 2: \ce{N2} dissociation PES and $\alpha$ model
+
+#+BEGIN_SRC python :results output org drawer 
+import numpy as np
+import matplotlib.pyplot as plt
+from plasmautils import make_PES, load_variables, get_prefix_explicit
+from mkm import NH3mkm
+from matplotlib.patches import ArrowStyle
+
+plt.style.use('seaborn-paper')
+
+plt.figure(figsize=(3,4), dpi=200)
+plt.subplot(211)
+
+# First plot the N2 vibrational ladder
+
+# harmonic constant (not to scale) for parabola
+k = 15
+
+# Nitrogen spectroscopic constants
+ws = np.array([2372.45, 18.1017])
+cm1eV = 0.00012398426
+EN_vibs = cm1eV * ws
+
+mod = NH3mkm(473, 0.5, p0=1, Tv=473., nlevels=20)
+E, _ = mod.boltzmann_dist()
+
+def get_x(Ei):
+    """Return the x coordinates of the energy states
+    within the parabolic well
+    """
+    return np.sqrt((np.array(Ei) + 0.29 / 2.) * 2 / k)
+
+color = plt.cm.Greys(np.linspace(0.7, 0.1, 11))
+
+for Ei, c in zip(E, color):
+    xi = get_x(Ei)
+    plt.plot([-xi, xi], [Ei, Ei], ls='-', c=c)
+
+x = np.linspace(-1, 1, 200)
+V = 0.5 * k * (x) * (x) - 0.29 / 2. 
+
+plt.plot(x, V, '#828282', ls='-')
+
+# Now plot N2 dissociation PESs
+# Ground state
+mod = NH3mkm(473, 0.5, p0=1)
+Eact = mod.get_Eacts()[0]
+Erxn = mod.get_rxn_energies()[0]
+Ea0 = Eact
+l0 = make_PES([Erxn], [Eact], [1], [''],
+              IS_start= -0.4,
+              fontsize=16, axis_labels=False,
+              col='C0', label='$v=0$')
+
+
+# Second excited state
+# With alpha
+mod = NH3mkm(473, 0.5, p0=1,
+             Evib=E[2], use_alpha=True)
+
+Eact = mod.get_Eacts()[0]
+Erxn = mod.get_rxn_energies()[0]
+
+l1 = make_PES([Erxn], [Eact],
+              [1],
+              [''],
+              col = 'C1',
+              ls = '-',
+              label='$\\alpha<1$',
+              axis_labels=False,
+              fontsize=8,
+              IS_start= -0.4,              
+              Eref=E[2])
+
+
+# No alpha
+mod = NH3mkm(473, 0.5, p0=1,
+             Evib=E[2], use_alpha=False)
+
+Eact = mod.get_Eacts()[0]
+Erxn = mod.get_rxn_energies()[0]
+
+l2 = make_PES([Erxn], [Eact],
+              [1],
+              [''],
+              col = 'C2',
+              ls = '--',
+              label='$\\alpha=1$',
+              axis_labels=False,
+              fontsize=8,
+              IS_start= -0.4,
+              Eref=E[2])
+
+plt.ylabel('Potential energy')
+plt.xlabel('Reaction coordinate')
+
+plt.text(-0.85, 0.15, '$E_{v}$', fontsize=9)
+plt.text(1.65, 0.6, '$E_{a}$', fontsize=9)
+plt.text(2.25, 1.1, '2N$^{*}$', fontsize=9)
+plt.text(0.5, 0.1, 'N$_{2}$', fontsize=9)
+plt.text(0.5, 0.7, 'N$_{2}^{(v)}$', fontsize=9)
+
+plt.plot([1.4, 1.7], [0, 0], ls='-', lw=0.5, c='k')
+
+plt.ylim(-0.2, 2.9)
+plt.xlim(-0.95,)
+
+plt.annotate("",
+             xy=(-0.5, 0.),
+             xytext=(-0.5, E[2]),
+	     arrowprops=dict(arrowstyle=ArrowStyle("<|-",
+                                                   head_width=0.05,
+                                                   head_length=0.1),
+                             shrinkA=0,
+                             shrinkB=0,
+                             lw=0.5,
+                             color='k',
+                             linestyle='solid'
+                             ),
+             fontsize=24)
+
+plt.annotate("",
+             xy=(1.55, 0.),
+             xytext=(1.55, Ea0),
+	     arrowprops=dict(arrowstyle=ArrowStyle("<|-",
+                                                   head_width=0.05,
+                                                   head_length=0.1),
+                             shrinkA=0,
+                             shrinkB=0,
+                             lw=0.5,
+                             color='k',
+                             linestyle='solid'
+                             ),
+             fontsize=24)
+
+
+plt.yticks([])
+plt.xticks([])
+
+
+plt.legend([l2, l1],
+           [l2.get_label(),
+            l1.get_label()],
+           frameon=False,
+           handlelength=1.7,
+           fontsize=7, loc='best')
+
+# Now plot Fridman alpha
+plt.subplot(212)
+T = 473.
+p = 1.
+
+ENs = np.linspace(-1.5, 1.)
+colors = {'step': 'C1', 'terrace':'C2'}
+
+for site in ['terrace', 'step']:
+    alphas = []
+    for EN in ENs:
+        mod = NH3mkm(T, EN, use_alpha=True, site=site)
+        alpha = mod.calculate_alpha(mod.get_Eacts()[0])
+        alphas.append(alpha)
+
+    plt.plot(ENs, alphas, c=colors[site], label=site)
+
+    if site is 'step':
+        prefix = get_prefix_explicit(site, T, p, 3000., 'Treanor',
+                                     1, True)
+        filename = 'rate-calcs-metals/{0}/{0}.json'.format(prefix)
+        d = load_variables(filename)
+        Ems = d['ENs']
+        metals = d['metals']
+
+        alphas = []        
+        for EN, m  in zip(Ems, metals):
+            mod = NH3mkm(T, EN, use_alpha=True, site=site)
+            alpha = mod.calculate_alpha(mod.get_Eacts()[0])
+            alphas.append(alpha)
+            if m in ['Fe', 'Pt', 'Pd']:
+                yoffset = 0.03
+            else:
+                yoffset = -0.09
+            plt.text(EN - 0.06, alpha + yoffset, m, fontsize=8, color='C1')
+            
+        plt.plot(Ems, alphas, 'o', mec=colors[site], mfc='w', mew=1.5)
+
+plt.figtext(0.225, 0.465, 'b', fontweight='bold')
+plt.figtext(0.225, 0.92, 'a', fontweight='bold')
+
+plt.legend(loc=4, fontsize=8, frameon=False)
+
+plt.ylim(-0.05, 0.85)
+plt.xlim(-1.4, 1.)
+plt.xticks(np.arange(-1.2, 1, 0.6))
+plt.xlabel('$E_{\mathrm{N}}$ [eV]')
+plt.ylabel('$\\alpha$')
+plt.tight_layout()
+
+plt.tight_layout()
+for ext in ['pdf', 'png', 'eps']:
+     plt.savefig('../figures/fig2-vib-PES-alpha.{0}'.format(ext),
+                 dpi=300)
+plt.show()
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+:END:
+
+
+
+
+
+
+
+*** Figure 3: Vibrational temperature and distribution functions
+
+#+BEGIN_SRC python :results output org drawer
+from mkm import NH3mkm
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+plt.style.use('seaborn-talk')
+
+plt.figure(figsize=(4, 1.33 * 4), dpi=200)
+
+d = pd.read_excel('Raw_data_OES.xlsx', sheet_name='Tv')
+
+plt.subplot2grid((3, 1), (0, 0), rowspan=1)
+plt.errorbar(d['N2/H2'], d['Ni-Al2O3'], d['ENi-Al2O3'],
+             mew=2, mfc='w', fmt='o',  capthick=2, capsize=5)
+
+plt.xticks(np.arange(1, 6, 1))
+plt.ylim(2500, 3500)
+plt.xlabel('N$_{2}$ / H$_{2}$')
+plt.ylabel('$T_{vib}$ [K]')
+
+plt.subplot2grid((3, 1), (1, 0), rowspan=2)
+mod = NH3mkm(473, -0.5, Tv=3000, dist='Boltzmann', nlevels=11)
+
+e, p = mod.boltzmann_dist()
+l1, = plt.semilogy(e, p, 'o-', mfc='w', mec='C0', mew=2, label='Boltzmann')
+
+mod = NH3mkm(473, -0.5, Tv=3000, dist='Treanor', nlevels=11)
+e, p = mod.treanor_dist()
+l0, = plt.semilogy(e, p, 'o-', mfc='w', mec='C1', mew=2, label='Treanor')
+
+plt.xlabel('Vibrational energy [eV]')
+plt.ylabel('N$_{2}$ VDF at $T_{vib}$ = 3000 K')
+plt.xticks(np.arange(0,4,1))
+
+plt.legend([l0, l1], [l0.get_label(), l1.get_label()],
+           frameon=False, fontsize=10, markerscale=0.8)
+
+plt.figtext(0.28, 0.8, 'a', fontsize=16, fontweight='bold')
+plt.figtext(0.28, 0.16, 'b', fontsize=16, fontweight='bold')
+
+plt.tight_layout()
+
+for ext in ['pdf', 'eps', 'png']:
+    plt.savefig('../figures/fig3-VDF.{0}'.format(ext), dpi=300)
+plt.show()
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+:END:
+
+
+
+
+*** Figure 4: Plasma-on vs Plasma-off TOFs
+
+#+BEGIN_SRC python :results output org drawer
+from plasmautils import get_prefix_explicit, load_variables
+import matplotlib.pyplot as plt
+import numpy as np
+from mkm import NH3mkm
+
+plt.style.use('seaborn-talk')
+
+# Haber Bosch conditions
+T = 473.0
+p = 1.0
+dist = 'Treanor'
+n = 11
+a = True
+site = 'step'
+Tv = 3000.
+
+plt.figure(figsize=(6, 4), dpi=200)
+
+ax1 = plt.subplot(121)
+
+# Sabatier Rates 
+RsabN2 = []
+RsabNH = []
+
+E = np.linspace(-1.5, 1.0)
+
+for e in E:
+     mod = NH3mkm(T, e, use_alpha=True, site=site,
+                  model='explicit', Tv=Tv, nlevels=n)
+     RsabN2.append(mod.get_sabatier_rate(N2_only=True)[1])
+     RsabNH.append(mod.get_sabatier_rate(non_N2=True)[1])
+plt.plot(E, np.log10(RsabNH), ls='--', c='C7')
+
+# Plasma on rates
+prefix = get_prefix_explicit(site, T, p, Tv, dist, n, a)
+filename = 'rate-calcs/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+
+line, = plt.plot(E, np.log10(R), c='C0')
+
+filename = 'rate-calcs-metals/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+metals = d['metals']
+plt.plot(E, np.log10(R), 'o', mew=2, mfc='w', mec=line.get_color())
+
+for m, e, r in zip(metals, E, R):
+    if m == 'Ru':
+        xoffset = -0.25
+        yoffset = 0.6
+    elif m == 'Ni':
+        xoffset = 0.08
+        yoffset = 0.
+    elif m == 'Pt':
+        xoffset = -0.05
+        yoffset = 0.6
+    elif m == 'Pd':
+        xoffset = -0.3
+        yoffset = -0.5
+    else:
+        xoffset = -0.2
+        yoffset = 0.7
+    if m != 'Fe':
+        plt.text(e + xoffset, np.log10(r) + yoffset,
+                 m, color=line.get_color(), fontsize=12)
+
+# Plasma off rates
+prefix = get_prefix_explicit(site, T, p, Tv, 'Treanor',
+                             1, True)
+filename = 'rate-calcs/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+line, = plt.plot(E, np.log10(R), c='C1')
+
+# metals
+filename = 'rate-calcs-metals/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+metals = d['metals']
+plt.plot(E, np.log10(R), 'o', mew=2, mfc='w', mec=line.get_color())
+
+
+for m, e, r in zip(metals, E, R):
+    if m in ['Ru', 'Co', 'Ni', 'Rh', 'Fe']:
+        xoffset = 0. 
+        yoffset = 0.7
+        if m == 'Fe':
+            xoffset = -0.13
+            yoffset = 0.9
+        plt.text(e + xoffset, np.log10(r) + yoffset,
+                 m, color=line.get_color(), fontsize=12)
+
+
+plt.xlim(-1.4, 1.)
+plt.ylim(-22, 0)
+plt.xticks(np.arange(-1.2, 1, 0.6))
+plt.yticks(np.arange(-20, 1, 5))
+plt.xlabel('$E_{\mathrm{N}}$ [eV]')
+plt.ylabel('log$_{10}$(TOF [s$^{-1}$])')
+
+# Terraces
+ax2 = plt.subplot(122, sharey=ax1)
+plt.setp(ax2.get_yticklabels(), visible=False)
+
+site = 'terrace'
+
+# Sabatier Rates 
+RsabN2 = []
+RsabNH = []
+
+E = np.linspace(-1.5, 1.0)
+
+for e in E:
+     mod = NH3mkm(T, e, use_alpha=True, site=site,
+                  model='explicit', Tv=Tv, nlevels=n)
+     RsabN2.append(mod.get_sabatier_rate(N2_only=True)[1])
+     RsabNH.append(mod.get_sabatier_rate(non_N2=True)[1])
+plt.plot(E, np.log10(RsabNH), ls='--', c='C7')
+
+# Plasma on rates
+prefix = get_prefix_explicit(site, T, p, Tv, dist, n, a)
+filename = 'rate-calcs/{0}/{0}.json'.format(prefix, site)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+line, = plt.plot(E, np.log10(R), c='C5')
+
+filename = 'rate-calcs-metals/{0}/{0}.json'.format(prefix, site)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+metals = d['metals']
+plt.plot(E, np.log10(R), 'o', mew=2, mfc='w', mec=line.get_color())
+
+for m, e, r in zip(metals, E, R):
+    if m not in ['Re', 'Pd']:
+        xoffset = 0. 
+        yoffset = 0.7
+        if m =='Co':
+            xoffset = 0.05
+            yoffset = 0.3
+        plt.text(e + xoffset, np.log10(r) + yoffset,
+                 m, color=line.get_color(), fontsize=12)
+
+
+# Plasma off rates
+prefix = get_prefix_explicit(site, T, p, Tv, 'Treanor',
+                             1, True)
+filename = 'rate-calcs/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+line, = plt.plot(E, np.log10(R), c='C2')
+
+# metals
+filename = 'rate-calcs-metals/{0}/{0}.json'.format(prefix)
+d = load_variables(filename)
+E = d['ENs']
+R = d['R_steadystate']
+metals = d['metals']
+plt.plot(E, np.log10(R), 'o', mew=2, mfc='w', mec=line.get_color())
+
+
+for m, e, r in zip(metals, E, R):
+    if m not in ['Ni', 'Pt', 'Pd']:
+        xoffset = 0. 
+        yoffset = 0.7
+        if m =='Co':
+            xoffset = 0.05
+            yoffset = 0.3
+        elif m == 'Re':
+            yoffset = -1.5
+            xoffset = 0
+        plt.text(e + xoffset, np.log10(r) + yoffset,
+                 m, color=line.get_color(), fontsize=12)
+
+
+plt.xlim(-1.4, 1.)
+plt.ylim(-22, 0)
+plt.xticks(np.arange(-1.2, 1, 0.6))
+plt.yticks(np.arange(-20, 1, 5))
+plt.xlabel('$E_{\mathrm{N}}$ [eV]')
+
+plt.figtext(0.175, 0.88, 'a', fontsize=16, fontweight='bold')
+plt.figtext(0.59, 0.88, 'b', fontsize=16, fontweight='bold')
+
+plt.figtext(0.415, 0.77, "'plasma-on'", color='C0', fontsize=10)
+plt.figtext(0.835, 0.725, "'plasma-on'", color='C5', fontsize=10)
+plt.figtext(0.25, 0.3, "'plasma-off'", color='C1', fontsize=10)
+plt.figtext(0.625, 0.3, "'plasma-off'", color='C2', fontsize=10)
+
+plt.tight_layout()
+
+for ext in ['pdf', 'eps', 'png']:
+    plt.savefig('../figures/fig4-weighted-TOF.{0}'.format(ext), dpi=300)
+plt.show()
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+:END:
+
+
+*** Figure 5: Experimental site time yields
+
+
+#+BEGIN_SRC python :results output org drawer
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.stats import linregress
+import statsmodels.api as sm
+from uncertainties import ufloat
+
+plt.style.use('seaborn-talk')
+plt.figure(figsize=(4, 4), dpi=200)
+d = pd.read_excel('kinetic-expts.xlsx', sheet_name='Initial Rates')
+
+# EN for step sites
+ENs = [-1.27, -0.46, -0.18, -0.06, 0.61]
+
+CO_sites = np.array([26.6, 11.7, 5.5, 16.5, 16.8]) * 1e-6
+
+shifts = [-0.02, 0.12, 0.2, 0.05, 0.1]
+for m, EN, r, er, nsites, s in zip(d['Catalyst'],
+                                   ENs,
+                                   d['Initial Rate'],
+                                   d['Error'],
+                                   CO_sites,
+                                   shifts):
+    m_ru = ufloat(r, er)
+    Al_ru = ufloat(d['Initial Rate'][5],
+                   d['Error'][5])
+    
+    STY_u = (m_ru - Al_ru) / nsites / 60
+
+    plt.errorbar([EN], [STY_u.n], [STY_u.s],
+                 fmt='o', c='C0', mec='C0', mew='2', mfc='w',
+                 capthick=2, capsize=5, ms=10)
+
+    plt.text(EN - s, STY_u.n + 0.004, m, color='C0', fontsize=14)
+
+plt.ylabel('Site-time yield [s$^{-1}$]')
+plt.xlabel('$E_{\mathrm{N}}$ [eV]')
+plt.tight_layout()
+for ext in ['pdf', 'png', 'eps']:
+    plt.savefig('../figures/fig5-STY.{0}'.format(ext), dpi=200)
+plt.show()
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+:END:
+
+
+bibliography:../shorttitles.bib,../references.bib
+
+
+
+
