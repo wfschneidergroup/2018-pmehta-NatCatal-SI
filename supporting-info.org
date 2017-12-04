@@ -859,7 +859,7 @@ plt.show()
 :END:
 
 
-bibliography:../shorttitles.bib,../references.bib
+bibliography:./shorttitles.bib,./references.bib
 
 
 
