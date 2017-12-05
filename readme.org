@@ -1,1 +1,1 @@
-placeholder
+Supporting dataset for "Overcoming Ammonia Synthesis Scaling Relations with Plasma-enabled Catalysis"
