@@ -1,9 +1,8 @@
 #+TITLE: 
 #+EXPORT_EXCLUDE_TAGS: noexport
-#+OPTIONS: author:nil date:nil toc:nil tex:dvipng
+#+OPTIONS: author:nil date:nil toc:nil tex:dvipng num:nil
 #+LATEX_CLASS: revtex4-1
 #+LATEX_CLASS_OPTIONS:[aps,citeautoscript,preprint,citeautoscript,showkeys,floatfix,superscriptaddress,longbibliography]
-#+latex_header: \SectionNumbersOn
 #+latex_header: \usepackage[utf8]{inputenc}
 #+latex_header: \usepackage{url}
 #+latex_header: \usepackage[version=4]{mhchem}
@@ -21,12 +20,14 @@
 #+latex_header: \newcommand{\red}[1]{\textcolor{red}{#1}}
 #+latex_header: \chemsetup{formula = mhchem ,modules = {reactions,thermodynamics}}
 #+latex_header: \usepackage[noabbrev]{cleveref}
+#+latex_header: \def\bibsection{\section*{\refname}} 
+#+latex_header: \renewcommand{\figurename}{Supplementary Figure}
+#+latex_header: \renewcommand{\tablename}{Supplementary Table}
+#+latex_header: \Crefname{figure}{Supplementary Figure}{Supplementary Figures}
+#+latex_header: \Crefname{figure}{Supplementary Figure}{Supplementary Figures}
+#+latex_header: \Crefname{table}{Supplementary Table}{Supplementary Tables}
 
-#+latex_header:	\renewcommand{\thetable}{S\arabic{table}}
-#+latex_header:  \renewcommand{\thefigure}{S\arabic{figure}}
-#+latex_header:\renewcommand{\thesection}{S\arabic{section}}
-
-\title{Supporting Information: Overcoming Ammonia Synthesis Scaling Relations with Plasma-enabled Catalysis}
+\title{Supplementary Data: Overcoming Ammonia Synthesis Scaling Relations with Plasma-enabled Catalysis}
 
 \author{Prateek Mehta}
 \affiliation{Department of Chemical and Biomolecular Engineering, University of Notre Dame, Notre Dame, Indiana 46556, United States}
@@ -61,34 +62,11 @@
 \maketitle
 \raggedbottom
 
-In this document we provide additional information about the computational and experimental methods used, along with supplementary results. To accompany this document, an external Zenodo repository hosts code and raw data cite:prateek_mehta_2017_1072163.  The microkinetic model is included as a python module (/mkm.py/). Other utility functions are included in /plasmautils.py/. Calculated turnover frequencies are included as /json/ files. Raw data for the plasma characterization and kinetic measurements are included as Excel spreadsheets (/Raw_data_OES.xlsx/ and /kinetic-expts.xlsx/). Python scripts showing how these data files were used to create the figures in the main text are shown in cref:sec:reproduction. These scripts were executed in place inside an Emacs /org-mode/ (http://orgmode.org) document, which was subsequently exported to create this pdf. The org-mode source file, /supporting-info.org/, is also available in the data repository.
+* Supplementary Data
 
-* Scaling relations label:sec:scaling
-   
-Cref:fig:steps1,fig:steps2 show the scaling reactions used to calculate the reaction and activation energies of the elementary steps on stepped surfaces. Relevant adsorption energies and activation energies were obtained from Refs.\nbsp{}cite:vojvodic-2014-explor-limit,wang-2011-univer-trans. Cref:fig:terrace1,fig:terrace2 show the scaling reactions used to calculate the reaction and activation energies of the elementary steps on terrace sites. Relevant energies were obtained from Refs.\nbsp{}cite:wang-2011-univer-trans,falsig-2013-struc-sensit. We note that for terrace sites, we used a constant value of -0.32 eV is used for the H binding energy (the value for Pt(111) cite:wang-2011-univer-trans). This choice ensures that the overall reaction energy is identical for steps and terraces, and is justified because the hydrogen adsorption energy varies very little for the metals studied here. A similar assumption was made in a previous study cite:vojvodic-2014-explor-limit.
+To accompany this publication, an external Zenodo repository hosts code and raw data cite:prateek_mehta_2017_1072163.  In the repository, we include the microkinetic model as a python module (/mkm.py/). Other utility functions are included in /plasmautils.py/. Calculated turnover frequencies are provided as /json/ files. Raw data for the plasma characterization and kinetic measurements are included as Excel spreadsheets (/Raw_data_OES.xlsx/ and /kinetic-expts.xlsx/). Python scripts showing how these data files were used to create the figures in the main text are shown below. These scripts were executed in place inside an Emacs /org-mode/ (http://orgmode.org) document, which was subsequently exported to create this pdf. The org-mode source file, /supporting-info.org/, is also available in the data repository.
 
-#+ATTR_LATEX: :placement [H] :width 5in
-#+caption: Correlations between reaction energies of different elementary steps and the nitrogen adsorption energy on step sites label:fig:steps1
-[[file:figures/steps-rxn-scaling.png]]
-
-
-#+ATTR_LATEX: :placement [H] :width 5in
-#+caption: BEP relationships between reaction and activation energies of different elementary steps on step sites label:fig:steps2
-[[file:figures/steps-BEP-scaling.png]]
-
-#+ATTR_LATEX: :placement [H] :width \textwidth
-#+caption: Correlations between reaction energies of different elementary steps and the nitrogen adsorption energy on terrace sites label:fig:terrace1
-[[file:figures/terraces-rxn-scaling.png]]
-
-
-#+ATTR_LATEX: :placement [H] :width 5in
-#+caption: BEP relationships between reaction and activation energies of different elementary steps on terrace sites label:fig:terrace2
-[[file:figures/terraces-BEP-scaling.png]]
-
-
-* Microkinetic Model label:sec:mkm
-
-Our microkinetic model is available as a python module (/mkm.py/). An example of how to use the file to compute coverages and rates is shown below.
+** Using the microkinetic model (/mkm.py/) label:sec:mkm
 
 #+BEGIN_SRC python :results output org drawer
 from mkm import NH3mkm
@@ -142,72 +120,7 @@ TOF = 1.36e-04 s^{-1}
 :END:
 
 
-* Plasma Characterization
-
-This section contains figures referenced in section IIIB of the main text.
-
-#+ATTR_LATEX: :placement [H] :width 5in
-#+caption: Experimental set-up consisting of an L-shaped quartz tube DBD plasma reactor with 5 mm inner diameter tube and an optical fiber coupled to a spectrometer. The bottom part of the L-bend has a quartz window for easy optical access to the catalyst bed.
-[[file:figures/plasma-char-setup.png]]
-
-#+ATTR_LATEX: :placement [H] :width 5in
-#+caption: (a) Emission spectra of a 10 W DBD plasma with no catalyst for different \ce{N2}/\ce{H2} ratios at a total flow rate of 20 sccm. (b) Example of fitting experimental spectrum using Specair\texttrademark\nbsp{}in the wavelength range of 300-385 nm (\ce{N2}/\ce{H2} = 5, 10 W DBD plasma with no catalyst)
-[[file:figures/plasma-char-spectra.png]]
-
-#+ATTR_LATEX: :placement [H] :width 3in
-#+caption: Vibrational temperature (T_{vib}) as a function of the gas composition \ce{N2}/\ce{H2} for three experimental conditions: a 10 W DBD plasma with no catalyst material (open circle), a 10 W DBD plasma with 100 mg \ce{Al2O3} support, and a 10 W DBD plasma with 100 mg \ce{Al2O3} support and 5% Ni catalyst.
-[[file:figures/plasma-char-Tv.png]]
-
-
-* Catalyst Characterization
-
-\ce{N2} physisorption experiments were performed on all five catalysts at 77 K using a Quantachrome Nova 2200e physisorption system. These data are shown in Cref:tab:cat-char. All materials were found to have surface areas in the range of 100-150 m^{2}/g. The number of available metal sites were titrated through CO pulse chemisorption (Micromeritics Chemisorb 2750). Before measurement catalysts were pre-treated in 20 mL/min hydrogen at 773 K for 30 min to minimize any polycarbonyl formation during the CO pulse sequence. After 30 min the flow was changed to 20 mL/min helium for 30 min to remove any physisorbed species from the surface. The sample was then cooled to 308 K and small amounts of 30 % CO in He (Airgas) were pulsed into the system until the surface was saturated with CO. The amount of CO adsorbed was subsequently determined using an external calibration. CO uptake amounts are also reported in Cref:tab:cat-char.  X-ray diffraction was performed on each powdered catalyst using a D8 Advance Davinci (Bruker). Diffraction patterns obtained on each material are shown in Cref:fig:XRD.  A silicon standard was added to each sample to in order to correct for any shifts in peak location. Particle size distributions were determined for each material based on TEM images taken by a FEI Titan Microscope. All particle size distributions are based on more than 300 particles. Images and distributions can be seen in Cref:fig:tem-sizes. Average particle sizes are reported in Cref:tab:cat-char.
-
-#+ATTR_LATEX: :placement [H]  :font \scriptsize :align c|c|c|c|c
-#+caption:Metal loading, surface area, CO uptake, and average particle size of the catalysts investigated in this study. label:tab:cat-char
-|------------+---------------------+--------------------------+--------------------------+---------------------------|
-| *Catalyst* | *Metal loading (%)* | *Surface Area (m^{2}/g)* | *CO uptake (\mu{}mol/g)* | *Avg. Particle Size (nm)* |
-|------------+---------------------+--------------------------+--------------------------+---------------------------|
-| Fe         |                   5 |                    106.4 |                     26.6 |                       9.8 |
-| Ru         |                   5 |                    131.1 |                     11.7 |                      14.8 |
-| Co         |                   5 |                    140.6 |                      5.5 |                       7.3 |
-| Ni         |                   5 |                    133.5 |                     16.5 |                      15.0 |
-| Pt         |                   5 |                    152.7 |                     16.8 |                       2.5 |
-|------------+---------------------+--------------------------+--------------------------+---------------------------|
-
-#+ATTR_LATEX: :placement [H] :width 4in
-#+caption: X-ray diffraction patterns for: a) 5 % Fe/\ce{Al2O3}, b) 5 % Ru/\ce{Al2O3}, c) 5 % Co/\ce{Al2O3}, d) 5 % Ni/\ce{Al2O3}, and e) 5 % Pt/\ce{Al2O3}. The vertical dashed lines correspond to the silicon standard. \gamma-alumina appears on all samples and is marked with a white diamond. The other metals are marked as follows: Fe (brown circles), Ru (red squares), Co (blue triangles), Ni (green diamonds), and Pt (black triangles). label:fig:XRD
-[[./figures/xrd.png]]
-
-#+ATTR_LATEX: :placement [H] :width 4.2in
-#+caption: TEM images and particle size distributions for 5 % Fe/\ce{Al2O3}, 5 % Ru/\ce{Al2O3}, 5 % Co/\ce{Al2O3}, 5 % Ni/\ce{Al2O3}, and 5 % Pt/\ce{Al2O3} label:fig:tem-sizes
-[[./figures/tem-sizes.png]]
-
-
-* Feed Composition Optimization
-
-\ce{N2} rich feeds have been reported to produce higher ammonia yields than stoichiometric feeds in plasma-catalytic ammonia synthesis cite:mizushima-2006-catal-effec,kim-2016-atmos-press. To determine an optimal feed composition, we measured ammonia synthesis production rates with inlet \ce{N2}:\ce{H2} ratios ranging between 1:3 and 5:1 for two cases. In the first case, we used 100 mg of 5 % Ru/\ce{Al2O3} was used. In the second experiment, we used 100 mg of alumnia, to measure background ammonia production from the plasma and/or the support. The measured ammonia production rates are shown as a function of feed ratio in Cref:fig:feed. It is clear from the figure that \ce{N2}:\ce{H2} ratios between 1 and 3 result in the highest production rates. Accordingly, we used a \ce{N2}:\ce{H2} ratio of 2 for all rate determination experiments.
-
-#+ATTR_LATEX: :width 3in :placement [H]
-#+caption: Observed rate as a function of the inlet feed composition in a reactor packed with 100 mg of 5 % Ru/\ce{Al2O3} or 100 mg of \ce{Al2O3} blank. Reaction conditions: 438 K, 10 W, flow rate = 20 mL/min. label:fig:feed
-[[./figures/feed-composition.png]]
-
-
-* Initial rate determination
-
-We determined initial rates through careful examination of plots of the production rate of ammonia as a function of the residence time, defined as mass of material divided by the mass flow rate of reactants ($W/F$). All initial rate determinations were done at 438 K using a feed composition of \ce{N2}/\ce{H2} = 2 and a plasma power of 10 W. For these experiments, 100 mg of material was packed into the reactor, and the total flow rate of reactants was varied between 10 and 50 mL/min. Figure Cref:fig:WF shows the ammonia production rates normalized per gram of material as a function of $W/F$ (measured points are shown as filled circles). In all cases, production rates were lower at high $W/F$, and began to plateau in the limit of very low residence times, indicating that rates at these residence times were in the kinetically limited regime. A blank $W/F$ curve was also measured using a reactor packed with 100 mg of alumina to evaluate the background reactions. 
-
-Three different methods were used to extract initial rates from the collected data. In the first method, a line was fit through the data points in the reaction-limited regime. These fits were then extrapolated to $W/F$ = 0 to calculate the initial rates. In the second method, a quadratic equation was fit to the data and the peak of the parabola was used to calculate site-time yields. Finally, because a kinetically limited regime was observed on each catalyst, the rate measured at the lowest residence time was assumed to be equal to the initial rate to compute site-time yields. The initial rates computed by the three methods varied only marginally. The reported site time yields are based on initial rates (shown as open circles in Cref:fig:WF) linearly extrapolated to $W/F = 0$ (first method).
-
-#+ATTR_LATEX: :width 4in :placement [H]
-#+caption: Observed rates as a function of the residence time of reactants ($W/F$) in the DBD reactor. Initial rates (plotted as open circles) were extracted by extrapolating the observed rates to $W/F = 0$ using uncertainty weighted linear regression (shown by dotted lines). Reaction conditions: 438 K, 10 W, inlet \ce{N2}:\ce{H2} = 2:1. label:fig:WF
-[[./figures/WF.png]]
-
-
-
-* Reproducing figures in the paper label:sec:reproduction
-
-*** Figure 1: Thermal TOFs
+** Figure 1: Thermal TOFs
 
 #+BEGIN_SRC python :results output org drawer
 import matplotlib.pyplot as plt
@@ -324,7 +237,7 @@ plt.show()
 :END:
 
 
-*** Figure 2: \ce{N2} dissociation PES and $\alpha$ model
+** Figure 2: \ce{N2} dissociation PES and $\alpha$ model
 
 #+BEGIN_SRC python :results output org drawer 
 import numpy as np
@@ -539,7 +452,7 @@ plt.show()
 
 
 
-*** Figure 3: Vibrational temperature and distribution functions
+** Figure 3: Vibrational temperature and distribution functions
 
 #+BEGIN_SRC python :results output org drawer
 from mkm import NH3mkm
@@ -596,7 +509,7 @@ plt.show()
 
 
 
-*** Figure 4: Plasma-on vs Plasma-off TOFs
+** Figure 4: Plasma-on vs Plasma-off TOFs
 
 #+BEGIN_SRC python :results output org drawer
 from plasmautils import get_prefix_explicit, load_variables
@@ -807,7 +720,7 @@ plt.show()
 :END:
 
 
-*** Figure 5: Experimental site time yields
+** Figure 5: Experimental site time yields
 
 
 #+BEGIN_SRC python :results output org drawer
@@ -850,7 +763,7 @@ plt.ylabel('Site-time yield [s$^{-1}$]')
 plt.xlabel('$E_{\mathrm{N}}$ [eV]')
 plt.tight_layout()
 for ext in ['pdf', 'png', 'eps']:
-    plt.savefig('../figures/fig5-STY.{0}'.format(ext), dpi=200)
+    plt.savefig('../figures/fig5-STY.{0}'.format(ext), dpi=300)
 plt.show()
 #+END_SRC
 
